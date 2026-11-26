@@ -1,43 +1,27 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {structure, defaults, pose, atomRadius} from '../docs/geometry.mjs';
+import {structure,fcrn,camera} from '../docs/geometry.mjs';
 
-const near = (actual,expected) => assert.ok(Math.abs(actual-expected)<1e-9,`${actual} != ${expected}`);
-test('coordinate subset covers the deposited TNF trimer, its selected Fv, and documented epitope',() => {
-  assert.deepEqual(Object.keys(structure.traces),['A','B','C','F','I']);
-  assert.equal(structure.fvAtoms.length,1801);
-  assert.ok(structure.tnfAtoms.length>3000);
+const near = (a,b) => assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
+test('5YOY contains three separate bound Fvs in biological assembly 1',() => {
+  assert.equal(structure.id,'5YOY');
+  assert.deepEqual(Object.keys(structure.traces),[...'ABCDEFGHI']);
+  assert.deepEqual(structure.pairings.map(p=>p.tnf+p.light+p.heavy),['AFI','BDG','CEH']);
   assert.deepEqual(structure.footprint.map(([res])=>+res),[24,65,67,71,104,105,106,107,108,111,138,140,141]);
-  const origins = ['A','B','C'].map(c => structure.traces[c][0].slice(1));
-  for (const i of [0,1,2]) assert.ok(Math.abs(origins.reduce((s,p)=>s+p[i],0)/3)<0.0001);
+  assert.deepEqual(Object.values(structure.traces).map(r=>r.length),[154,154,154,108,108,108,126,126,125]);
 });
-
-test('rigid tilt and lift preserve the TNF–Fv interface distances', () => {
-  const [, ...a]=structure.footprint[0];
-  const b=structure.fvAtoms[0];
-  const distance = (p,q) => Math.hypot(...p.map((v,i)=>v-q[i]));
-  const {rotate}=pose({...defaults,tilt:70,height:12});
-  near(distance(a,b),distance(rotate(a),rotate(b)));
+test('4N0U is the separate deposited asymmetric unit with the four expected protein chains',() => {
+  assert.equal(fcrn.id,'4N0U');
+  assert.deepEqual(Object.keys(fcrn.traces),[...'ABDE']);
+  assert.ok(fcrn.traces.D.length>500);
+  assert.ok(fcrn.traces.E.length>180);
+  assert.equal(fcrn.footprint.length,0);
 });
-
-test('known pose, atom padding, and domain tangency are analytic',() => {
-  const data={end:[2,1,0],fvAtoms:[[0,0,0],[2,0,0]],tnfAtoms:[[0,1,0]]};
-  const value=pose({height:1,tilt:0,offset:1,radius:3,bearing:90},data);
-  near(value.tnfClearance,2-atomRadius);
-  near(value.fvClearance,1-atomRadius);
-  near(value.envelopeClearance,0);
-  near(value.minimumOriginHeight,1);
-  const tilted=pose({height:1,tilt:-90,offset:0,radius:1,bearing:0},data);
-  near(tilted.fvClearance,-1-atomRadius);
-  near(tilted.envelopeClearance,-2);
-  near(tilted.minimumOriginHeight,3);
-});
-
-test('worked example separates Fv clearance from a hypothetical domain overlap', () => {
-  const result=pose(defaults);
-  assert.ok(result.tnfClearance>0);
-  assert.ok(result.fvClearance>0);
-  assert.ok(result.envelopeClearance<0);
-  const cleared=pose({...defaults,height:result.minimumOriginHeight});
-  near(Math.min(cleared.tnfClearance,cleared.fvClearance,cleared.envelopeClearance),0);
+test('camera retains interface distances and closes full turn without changing the structure',() => {
+  const [, ...a]=structure.footprint[0], [, ...b]=structure.traces.F[0];
+  const distance=(p,q)=>Math.hypot(...p.map((v,i)=>v-q[i]));
+  const r=camera(61,-25);
+  near(distance(a,b),distance(r(a),r(b)));
+  for (const [i,x] of camera(360,0)(a).entries()) near(x,a[i]);
+  near(camera(90,0)([1,0,0])[2],1);
 });

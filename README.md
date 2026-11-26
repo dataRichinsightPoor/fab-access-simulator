@@ -56,13 +56,13 @@ This effective one-state model does not explicitly resolve two Fab arms, recepto
 
 ## Structural accuracy and limits
 
-### Inspect the coordinate-based geometry
+### Inspect each deposited structure separately
 
-The geometry panel projects one deposited TNF trimer (chains A/B/C) and the Fv contacting chain A (light F, heavy I) from [PDB 5YOY](https://www.rcsb.org/structure/5YOY). Gold markers use the epitope residues reported by [Ono et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC5980524/) in mature TNF numbering. The original structure stays rigid as it tilts relative to the hypothetical membrane. Change the origin height, tilt, and size and placement of an optional spherical domain envelope. The reference frame, pose and plane-overlap calculation are in [`geometry.mjs`](docs/geometry.mjs) and [`scripts/build-5yoy.mjs`](scripts/build-5yoy.mjs).
+[PDB 5YOY](https://www.rcsb.org/structure/5YOY) displays biological assembly 1: soluble TNF A/B/C, with three independent golimumab Fvs (light/heavy F/I, D/G, E/H). Gold markers show the chain A residues reported by [Ono et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC5980524/). [PDB 4N0U](https://www.rcsb.org/structure/4N0U) displays deposited asymmetric-unit protein chains A/B/D/E: FcRn extracellular α-chain, β2-microglobulin, albumin and one Fc-YTE chain, respectively. YTE is not ACT5. The camera uses rigid rotation and orthographic projection; the display is a Cα trace, not a molecular surface. No structure is spliced to the other.
 
-For each deposited heavy atom with coordinates `(x,y,z)` in the display frame, the signed distance to the hypothetical plane at `y=0` is `height + x*sin(tilt) + y*cos(tilt) − 0.17 nm`; the minimum determines the padded clearance of each component. For the sphere, clearance is its center height minus its radius. The minimum origin height is the lift needed from zero to give all displayed components nonnegative clearance. The sphere only tests the plane, not collisions with the TNF or Fab. It is not a molecular model of Fc.
+[Weise et al., Figure 1A/C/E/F](https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full#F1) is the reference for the proposed FcRn-bound architecture and the N–N versus C–C format schematics. [Figure 8A–D](https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full#F8) is the reference for golimumab outcomes, not a structural model. Neither these panels nor these depositions determine a membrane-bound pose for intact parental or inverted golimumab. The viewer does not report a membrane angle, clearance, steric clash, or site accessibility.
 
-The bundled subset is derived from public archival coordinates, separately credited to the PDB depositors. To reproduce it, download the [5YOY PDB file](https://files.rcsb.org/download/5YOY.pdb) and run `node scripts/build-5yoy.mjs 5YOY.pdb > docs/5yoy-data.mjs`. The generated module records the input’s SHA-256.
+The bundled traces derive from public archival coordinates, separately credited to their PDB depositors. Download [5YOY](https://files.rcsb.org/download/5YOY.pdb) and [4N0U](https://files.rcsb.org/download/4N0U.pdb), then run `node scripts/build-5yoy.mjs 5YOY.pdb > docs/5yoy-data.mjs` and `node scripts/build-5yoy.mjs 4N0U.pdb > docs/4n0u-data.mjs`. Each generated module records the input SHA-256.
 
 ### Do not fit occupancy to the geometry
 

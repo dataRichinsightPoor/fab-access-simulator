@@ -16,7 +16,7 @@
     <h1>Fab Access Simulator</h1>
     <p>When can longer tissue exposure compensate for slower capture or fewer reachable epitopes? Change the inputs separately, then see where the trade-off lands.</p>
     <span class="qualifier">Illustrative model · Not fitted to golimumab</span>
-    <a class="geometry-jump" href="#geometry">Explore membrane geometry ↓</a>
+    <a class="geometry-jump" href="#geometry">Inspect the structures and paper figures ↓</a>
   </div>
 </header>
 <main class="wrap">
@@ -70,36 +70,40 @@
   </section>
   <section class="geometry sensitivity" id="geometry" aria-labelledby="geometry-title">
     <div class="sectiontop">
-      <div><span class="eyebrow">04 / Inspect membrane geometry</span><h2 id="geometry-title">Would the bound pose fit?</h2></div>
-      <button type="button" id="geometry-reset">Reset example</button>
+      <div><span class="eyebrow">04 / Structure and evidence</span><h2 id="geometry-title">What is actually resolved?</h2></div>
+      <button type="button" id="geometry-reset">Reset view</button>
     </div>
-    <p>Keep the observed TNF–Fv interface fixed. Tilt the whole complex relative to a flat membrane, then test where a hypothetical extra domain would fit.</p>
+    <p>Inspect two separate experimental structures: the antigen-binding interface and the recycling-receptor interface. Camera rotation changes the perspective, not the conformation. The entries are not assembled into a single molecule.</p>
     <div class="geometry-grid">
       <div class="geometry-scene">
-        <p class="geometry-key"><span class="tnf-key">TNF trimer</span><span class="fv-key">Golimumab Fv</span><span class="epitope-key">TNF footprint</span><span class="envelope-key">Hypothetical domain</span></p>
+        <p class="geometry-key" id="geom-tnf-key"><span class="tnf-key">TNF trimer</span><span class="fv-key">Golimumab Fv</span><span class="epitope-key">Chain A footprint</span></p>
+        <p class="geometry-key" id="geom-fcrn-key" hidden><span class="tnf-key">FcRn α-chain</span><span class="fv-key">β2-microglobulin</span><span class="envelope-key">Albumin</span><span class="epitope-key">Fc-YTE chain</span></p>
         <div id="geometry-view"></div>
-        <p class="geometry-caption">Side view of deposited Cα traces, chains A/B/C and one bound Fv (F/I). Gold marks the reported epitope on chain A. The flat membrane and domain sphere are hypothetical.</p>
+        <p class="geometry-caption" id="geom-tnf-caption">Deposited Cα traces from <a href="https://www.rcsb.org/structure/5YOY">5YOY</a> (2.73 Å resolution), biological assembly 1: TNF A/B/C; Fv light/heavy F/I, D/G and E/H, respectively. Gold marks the 13 chain A epitope residues reported by <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5980524/">Ono et al.</a>, in mature TNF numbering. This is not a molecular surface or a model of intact IgG.</p>
+        <p class="geometry-caption" id="geom-fcrn-caption" hidden>Deposited protein Cα traces from the <a href="https://www.rcsb.org/structure/4N0U">4N0U</a> asymmetric unit (3.8 Å resolution): human FcRn extracellular α-chain (A), β2-microglobulin (B), albumin (D), and one engineered IgG1 Fc-YTE chain (E). This illustrates the local receptor–Fc interface, not ACT5, intact golimumab, or membrane orientation. See <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3953293/">Oganesyan et al.</a></p>
       </div>
-      <div class="geometry-controls">
-        <div id="geometry-sliders"></div>
-        <label class="geometry-toggle"><input id="geometry-shell" type="checkbox" checked> Show hypothetical domain</label>
+      <div class="geometry-controls" id="geometry-controls">
+        <label>Experimental structure<select id="geom-entry"><option value="5YOY">5YOY · TNF and golimumab Fv</option><option value="4N0U">4N0U · FcRn and Fc-YTE</option></select></label>
+        <label class="geometry-slider" for="geom-yaw"><span>Camera azimuth</span><output id="geom-yaw-value" for="geom-yaw"></output></label>
+        <input aria-label="Camera azimuth" id="geom-yaw" type="range" min="0" max="360" step="1">
+        <label class="geometry-slider" for="geom-pitch"><span>Camera elevation</span><output id="geom-pitch-value" for="geom-pitch"></output></label>
+        <input aria-label="Camera elevation" id="geom-pitch" type="range" min="-90" max="90" step="1">
+        <div id="geom-tnf-options"><label class="geometry-toggle"><input id="geom-all" type="checkbox" checked> Show all three Fvs</label>
+        <label class="geometry-toggle"><input id="geom-footprint" type="checkbox" checked> Highlight chain A epitope</label></div>
       </div>
     </div>
-    <dl id="geometry-results" class="geometry-results" aria-live="polite"></dl>
-    <p id="geometry-summary"></p>
-    <details>
-      <summary>How the geometry is calculated</summary>
-      <p>The origin is the centroid of the first resolved Cα positions on the three TNF chains. At zero tilt, the direction from that origin to the TNF Cα centroid is vertical. The complex then undergoes rigid rotation in the displayed plane. The dashed domain sphere is positioned by an offset and bearing from the midpoint of the last resolved Cα on the two Fv chains; the bearing is measured from horizontal at zero tilt.</p>
-      <p>Clearance is the lowest signed height above the flat plane. For TNF and Fv, it uses deposited heavy atoms with uniform 0.17 nm padding; for the hypothetical domain it uses the sphere’s lower edge. Below zero means overlap in this model. This check does not test domain–TNF or domain–Fab collisions, hinge flexibility, bivalency, or the native TNF stalk and membrane orientation.</p>
-    </details>
-    <p class="geometry-caption">Coordinates: <a href="https://www.rcsb.org/structure/5YOY">RCSB PDB 5YOY</a>, 2.73 Å, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5980524/">Ono et al.</a> The sphere is not a reconstruction of a conventional or inverted IgG. Geometry does not set the occupancy model’s accessible fraction or rates.</p>
+    <div class="methodgrid geometry-evidence">
+      <div><h3>FcRn geometry: schematic</h3><p><a href="https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full#F1">Weise et al., Fig. 1A, C, E and F</a> shows the proposed endosomal FcRn orientation and the N–N versus C–C format architecture. The two Fabs move from the N-terminal side to the C-terminal side of Fc; the schematics do not supply angles, distances, or an intact golimumab structure.</p></div>
+      <div><h3>Golimumab: measured outcomes</h3><p><a href="https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full#F8">Weise et al., Fig. 8A–D</a> compares soluble TNF neutralization, FcRn recycling, serum exposure, and clearance for the parent, C–C invertbody, and conventional ACT5 variant. These panels do not test intact-antibody binding kinetics on membrane TNF.</p></div>
+      <div><h3>Membrane TNF: unresolved</h3><p>5YOY lacks the full Fab constant domains, hinge, Fc, membrane TNF stalk and bilayer. Three separate Fvs in the crystal do not specify the valency or orientation of any one intact antibody. The viewer assigns no clash, allowable approach angle, accessible fraction, or kinetic rate.</p></div>
+    </div>
   </section>
   <section class="methods" aria-labelledby="methods-title">
     <span class="eyebrow">05 / Inspect the model</span>
     <h2 id="methods-title">What the simulator represents</h2>
     <div class="methodgrid">
       <div><h3>Math and units</h3><pre>dB/dt = k_on C(t)(f − B) − (k_off + k_loss)B</pre><p>B is the fraction of all surface sites occupied, f is the reachable fraction, and C(t) is free antibody in the tissue. Time is in hours; concentration is in nM. The solver uses the exact constant-input update with concentration evaluated at each step’s midpoint. Uploaded profiles are interpolated linearly and their knot times are included in the integration grid.</p></div>
-      <div><h3>Structural limits</h3><p>The geometry panel checks overlap with a plane under an assumed pose. It provides no calibration for occupancy. Access and rates remain user hypotheses: <a href="https://www.rcsb.org/structure/5YOY">5YOY</a> resolves an Fv with soluble TNF, not an intact inverted antibody at a membrane.</p></div>
+      <div><h3>Structural limits</h3><p>The structural viewer presents deposited coordinates, not a steric simulation. It provides no calibration for occupancy. Access and rates remain user hypotheses.</p></div>
       <div><h3>What the data say</h3><p>The <a href="https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full">Weise et al. preprint</a> measured clearance in a mouse model and soluble TNF neutralization, not the paired tissue exposures or surface binding rates needed here. The outputs are occupancy scenarios, not efficacy or dosing predictions.</p></div>
     </div>
   </section>
