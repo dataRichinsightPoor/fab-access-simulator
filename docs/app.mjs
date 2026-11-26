@@ -96,8 +96,8 @@ function render(c, rows){
   $('occupancy').innerHTML=chart(rows,c,true); $('exposure').innerHTML=chart(rows,c,false);
   $('threshold-head').textContent=`Time ≥ ${pct(c.occupancy_threshold)}`;
   $('metrics').innerHTML=rows.map((r,i)=>`<tr><th scope="row">${names[i]}</th><td>${pct(r.mean)}</td><td>${fixed(r.above)} h</td><td>${pct(r.end)}</td></tr>`).join('');
-  const [ref,,,mod]=rows, dMean=(mod.mean-ref.mean)*100, dTime=mod.above-ref.above;
-  $('interpretation').textContent=`Variant at its own exposure versus reference: ${signed(dMean)} percentage points in mean occupancy; ${signed(dTime)} h at or above the chosen threshold. A threshold is an assumption, not an efficacy cutoff.`;
+  const [ref,bindOnly,exposureOnly,mod]=rows, dMean=(mod.mean-ref.mean)*100, dTime=mod.above-ref.above;
+  $('interpretation').textContent=`At the chosen threshold, variant binding at matched exposure changes time by ${signed(bindOnly.above-ref.above)} h. Variant exposure alone changes it by ${signed(exposureOnly.above-ref.above)} h; with variant binding the same exposure swap changes it by ${signed(mod.above-bindOnly.above)} h. Together the variant changes time by ${signed(dTime)} h and mean occupancy by ${signed(dMean)} percentage points versus reference. The threshold is not an efficacy cutoff.`;
   $('sweep-result').replaceChildren();
   $('save-sweep').hidden=true;
   $('run-sweep').disabled=false;

@@ -1,6 +1,6 @@
 # Fab Access Simulator
 
-A small, dependency-free companion to the Data-Rich, Insight-Poor? essay “What the Antibody Can Still Reach.” It asks when a longer-lived antibody can compensate for slower target capture, faster washout, or a smaller fraction of reachable epitopes. The simulation starts from free antibody in tissue, not serum.
+A small, dependency-free companion to the Data-Rich, Insight-Poor? essay “Can an Invertbody Recycle Better Without Losing Its Reach?” It asks when longer tissue exposure can compensate for slower target capture, faster dissociation, or a smaller fraction of reachable epitopes. The simulation starts from free antibody in tissue, not serum.
 
 ## Run in your browser
 
@@ -37,7 +37,7 @@ Across the default 72-hour window, the variant at its own exposure averages 44.2
 
 ## Model
 
-The model imposes a monoexponential free tissue concentration `C(t) = C0 × 2^(-t / t½)`, or a constant clamp. It tracks `B`, the fraction of all surface sites occupied, with an accessible fraction `f`:
+The model takes free tissue concentration as an input: a monoexponential profile `C(t) = C0 × 2^(-t / t½)`, a constant clamp, or a linearly interpolated custom profile. It tracks `B`, the fraction of all surface sites occupied, with an accessible fraction `f`:
 
 ```text
 dB/dt = kon × C(t) × (f − B) − (koff + kloss) × B
@@ -50,7 +50,7 @@ This effective one-state model does not explicitly resolve two Fab arms, recepto
 
 ## Published context versus model assumptions
 
-[Weise et al., bioRxiv, 2026, Fig. 8](https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full) reported serum clearance values of 27.6 and 8.9 mL/day/kg for parental and inverted golimumab in IVIG-supplemented human-FcRn mice, and soluble TNF reporter IC₅₀ values of 38 and 28 pM. The preprint did not report paired cell-surface binding rates or free tissue concentration profiles for these formats. None of those reported values sets the simulator’s defaults; the example is synthetic. A threefold difference in serum clearance cannot be substituted for a threefold increase in tissue concentration or half-life.
+[Weise et al., bioRxiv preprint, 2026, Fig. 8](https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full#F8) reported serum clearance values of 27.6, 8.9, and 10.4 mL/day/kg for parental, inverted, and conventional ACT5 golimumab, respectively, in human-FcRn mice supplemented with human immunoglobulin by intraperitoneal injection. The same formats gave overnight soluble TNF reporter IC₅₀ values of 38, 28, and 31 pM. The preprint did not report paired cell-surface binding rates or free tissue concentration profiles for these formats. None of those reported values sets the simulator’s defaults; the example is synthetic. A threefold difference in serum clearance cannot be substituted for a threefold increase in tissue concentration or half-life.
 
 [Shealy et al., mAbs, 2010](https://pmc.ncbi.nlm.nih.gov/articles/PMC3180089/) compared parental golimumab binding to soluble and transmembrane TNF using different assays. [Arnold et al., Nature Communications, 2023](https://pmc.ncbi.nlm.nih.gov/articles/PMC10199101/) used controlled antigen heights to show that membrane context can change effective antibody binding. These studies motivate the model’s distinction between exposure and access; they do not calibrate the variant.
 
@@ -68,8 +68,8 @@ The bundled traces derive from public archival coordinates, separately credited 
 
 The kinetic model has no molecular coordinates, docking scores, explicit Fc or Fab linkers, glycocalyx, or computed steric footprint. The structural panel does not set `f` or any rate. Treat `f` as an effective accessible fraction over the experimental window, not a structural count of exposed sites. A lower apparent association rate and a lower `f` can both suppress the early signal; for an initially empty surface their contribution to initial slope is a product. A single trace generally cannot separate them. Matched concentration series, an independently assessed surface target level, and controls for target height and ligand presentation are needed to test those interpretations.
 
-[PDB 5YOY](https://www.rcsb.org/structure/5YOY) resolves the golimumab Fv with soluble TNF. It provides an epitope footprint but no coordinates for the intact inverted antibody, its C-terminal Fab connections, or a cell membrane. A clear pose in the panel therefore does not mean it is populated or accessible in cells, and an overlap at an assumed tilt does not establish a structural penalty for golimumab.
+[PDB 5YOY](https://www.rcsb.org/structure/5YOY) resolves the golimumab Fv with soluble TNF. It provides an epitope footprint but no coordinates for the intact inverted antibody, its C-terminal Fab connections, or a cell membrane. Rotating the deposited complex cannot answer whether an intact antibody can access the same epitope on a cell.
 
 ## License
 
-[MIT](LICENSE). The license covers this repository’s software and accompanying documentation, not the cited publications or deposited structures.
+[MIT](LICENSE) covers the simulator software and accompanying documentation. The coordinate files underlying the bundled traces are separately available under the [wwPDB archive’s CC0 1.0 policy](https://www.rcsb.org/pages/policies); the entries and their depositors are cited above. The MIT license does not apply to the cited publications.

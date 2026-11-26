@@ -14,8 +14,8 @@
   <div class="wrap intro">
     <p class="eyebrow">Mechanistic modeling notebook <span>01</span></p>
     <h1>Fab Access Simulator</h1>
-    <p>When can longer tissue exposure compensate for slower capture or fewer reachable epitopes? Change the inputs separately, then see where the trade-off lands.</p>
-    <span class="qualifier">Illustrative model · Not fitted to golimumab</span>
+    <p>When can longer tissue exposure compensate for slower capture or fewer reachable epitopes? Compare binding at the same exposure, then swap exposure while holding binding fixed. The same exposure change need not buy the same amount of engagement in both formats.</p>
+    <span class="qualifier">Surface occupancy only · Not fitted to golimumab</span>
     <a class="geometry-jump" href="#geometry">Inspect the structures and paper figures ↓</a>
   </div>
 </header>
@@ -103,7 +103,7 @@
     <h2 id="methods-title">What the simulator represents</h2>
     <div class="methodgrid">
       <div><h3>Math and units</h3><pre>dB/dt = k_on C(t)(f − B) − (k_off + k_loss)B</pre><p>B is the fraction of all surface sites occupied, f is the reachable fraction, and C(t) is free antibody in the tissue. Time is in hours; concentration is in nM. The solver uses the exact constant-input update with concentration evaluated at each step’s midpoint. Uploaded profiles are interpolated linearly and their knot times are included in the integration grid.</p></div>
-      <div><h3>Structural limits</h3><p>The structural viewer presents deposited coordinates, not a steric simulation. It provides no calibration for occupancy. Access and rates remain user hypotheses.</p></div>
+      <div><h3>What the model cannot infer</h3><p>The structures provide no calibration for access or rates. This model also does not separate uptake from other occupied-site loss or predict FcRn recycling, payload cleavage, intracellular exposure or protein degradation. Those require separate measurements.</p></div>
       <div><h3>What the data say</h3><p>The <a href="https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full">Weise et al. preprint</a> measured clearance in a mouse model and soluble TNF neutralization, not the paired tissue exposures or surface binding rates needed here. The outputs are occupancy scenarios, not efficacy or dosing predictions.</p></div>
     </div>
   </section>
