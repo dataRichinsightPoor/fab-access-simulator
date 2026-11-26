@@ -1,0 +1,23 @@
+.geometry-jump{display:inline-block;margin-left:12px;color:#d8ece2}
+.geometry-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:20px;align-items:start}
+.geometry-scene,.geometry-controls{min-width:0;border:1px solid var(--line);border-radius:6px;padding:12px;background:#f5f7ef}
+.geometry-key{font-size:.78rem;display:flex;gap:6px 12px;flex-wrap:wrap;margin:0 0 5px}
+.geometry-key span{white-space:nowrap}
+.geometry-key span:before{content:"";display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:50%;background:var(--mark)}
+.tnf-key{--mark:#365f82}.fv-key{--mark:#087563}.epitope-key{--mark:#a76d0c}.envelope-key{--mark:#774376}
+#geometry-view svg{display:block;width:100%;height:auto;border:1px solid #d7dfd1;border-radius:4px;background:#fbfcf7}
+.geom-svg-label{font:11px system-ui;fill:#253d32}
+.geometry-slider{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:.82rem;font-weight:650}
+.geometry-slider output{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--green)}
+.geometry-controls input[type=range]{display:block;width:100%;height:24px;margin:0 0 7px;padding:0;accent-color:var(--green)}
+.geometry-toggle{display:flex;align-items:center;font-size:.82rem;gap:7px}
+.geometry-toggle input{width:auto;accent-color:var(--green)}
+.geometry-caption{margin:.6rem 0 0;font-size:.82rem;color:var(--muted)}
+.geometry-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:14px 0 0}
+.geometry-results div{border:1px solid var(--line);border-radius:5px;padding:8px 10px}
+.geometry-results dt,.geometry-results small{font-size:.76rem;color:var(--muted)}
+.geometry-results dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+.geometry-results dd small{display:block;font-weight:450}
+.geometry-results dd.geom-overlap,.geometry-results dd.geom-overlap small{color:#8b352a}
+#geometry-summary{font-weight:600}
+@media(max-width:720px){.geometry-grid{grid-template-columns:1fr;gap:10px}.geometry-jump{display:block;margin:8px 0 0}}

@@ -1,4 +1,4 @@
-export const version = '1.0.0';
+export const version = '1.1.0';
 export const keys = ['reference', 'variant_same_exposure', 'exposure_only', 'variant_own_exposure'];
 const baseline = {
   label: 'Exposure versus access', duration_h: 72, dt_h: 0.05, occupancy_threshold: 0.5,

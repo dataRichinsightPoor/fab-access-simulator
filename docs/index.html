@@ -6,6 +6,7 @@
   <meta name="description" content="An open, inspectable simulator of antibody tissue exposure, epitope accessibility, and target occupancy.">
   <title>Fab Access Simulator</title>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./geometry.css">
 </head>
 <body>
 <header>
@@ -15,6 +16,7 @@
     <h1>Fab Access Simulator</h1>
     <p>When can longer tissue exposure compensate for slower capture or fewer reachable epitopes? Change the inputs separately, then see where the trade-off lands.</p>
     <span class="qualifier">Illustrative model · Not fitted to golimumab</span>
+    <a class="geometry-jump" href="#geometry">Explore membrane geometry ↓</a>
   </div>
 </header>
 <main class="wrap">
@@ -66,17 +68,44 @@
     <div id="sweep-result" class="tablebox" aria-live="polite"></div>
     <button type="button" id="save-sweep" hidden>Export sweep CSV</button>
   </section>
+  <section class="geometry sensitivity" id="geometry" aria-labelledby="geometry-title">
+    <div class="sectiontop">
+      <div><span class="eyebrow">04 / Inspect membrane geometry</span><h2 id="geometry-title">Would the bound pose fit?</h2></div>
+      <button type="button" id="geometry-reset">Reset example</button>
+    </div>
+    <p>Keep the observed TNF–Fv interface fixed. Tilt the whole complex relative to a flat membrane, then test where a hypothetical extra domain would fit.</p>
+    <div class="geometry-grid">
+      <div class="geometry-scene">
+        <p class="geometry-key"><span class="tnf-key">TNF trimer</span><span class="fv-key">Golimumab Fv</span><span class="epitope-key">TNF footprint</span><span class="envelope-key">Hypothetical domain</span></p>
+        <div id="geometry-view"></div>
+        <p class="geometry-caption">Side view of deposited Cα traces, chains A/B/C and one bound Fv (F/I). Gold marks the reported epitope on chain A. The flat membrane and domain sphere are hypothetical.</p>
+      </div>
+      <div class="geometry-controls">
+        <div id="geometry-sliders"></div>
+        <label class="geometry-toggle"><input id="geometry-shell" type="checkbox" checked> Show hypothetical domain</label>
+      </div>
+    </div>
+    <dl id="geometry-results" class="geometry-results" aria-live="polite"></dl>
+    <p id="geometry-summary"></p>
+    <details>
+      <summary>How the geometry is calculated</summary>
+      <p>The origin is the centroid of the first resolved Cα positions on the three TNF chains. At zero tilt, the direction from that origin to the TNF Cα centroid is vertical. The complex then undergoes rigid rotation in the displayed plane. The dashed domain sphere is positioned by an offset and bearing from the midpoint of the last resolved Cα on the two Fv chains; the bearing is measured from horizontal at zero tilt.</p>
+      <p>Clearance is the lowest signed height above the flat plane. For TNF and Fv, it uses deposited heavy atoms with uniform 0.17 nm padding; for the hypothetical domain it uses the sphere’s lower edge. Below zero means overlap in this model. This check does not test domain–TNF or domain–Fab collisions, hinge flexibility, bivalency, or the native TNF stalk and membrane orientation.</p>
+    </details>
+    <p class="geometry-caption">Coordinates: <a href="https://www.rcsb.org/structure/5YOY">RCSB PDB 5YOY</a>, 2.73 Å, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5980524/">Ono et al.</a> The sphere is not a reconstruction of a conventional or inverted IgG. Geometry does not set the occupancy model’s accessible fraction or rates.</p>
+  </section>
   <section class="methods" aria-labelledby="methods-title">
-    <span class="eyebrow">04 / Inspect the model</span>
+    <span class="eyebrow">05 / Inspect the model</span>
     <h2 id="methods-title">What the simulator represents</h2>
     <div class="methodgrid">
       <div><h3>Math and units</h3><pre>dB/dt = k_on C(t)(f − B) − (k_off + k_loss)B</pre><p>B is the fraction of all surface sites occupied, f is the reachable fraction, and C(t) is free antibody in the tissue. Time is in hours; concentration is in nM. The solver uses the exact constant-input update with concentration evaluated at each step’s midpoint. Uploaded profiles are interpolated linearly and their knot times are included in the integration grid.</p></div>
-      <div><h3>Structural limits</h3><p>Fab placement, epitope height, and steric constraints are not calculated. Access and rates are hypotheses supplied by the user. The golimumab structure <a href="https://www.rcsb.org/structure/5YOY">5YOY</a> resolves an Fv with soluble TNF, not an intact inverted antibody at a membrane. It cannot calibrate this model.</p></div>
+      <div><h3>Structural limits</h3><p>The geometry panel checks overlap with a plane under an assumed pose. It provides no calibration for occupancy. Access and rates remain user hypotheses: <a href="https://www.rcsb.org/structure/5YOY">5YOY</a> resolves an Fv with soluble TNF, not an intact inverted antibody at a membrane.</p></div>
       <div><h3>What the data say</h3><p>The <a href="https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full">Weise et al. preprint</a> measured clearance in a mouse model and soluble TNF neutralization, not the paired tissue exposures or surface binding rates needed here. The outputs are occupancy scenarios, not efficacy or dosing predictions.</p></div>
     </div>
   </section>
 </main>
-<footer><div class="wrap"><span>Fab Access Simulator · v1.0.0</span><a href="https://github.com/dataRichinsightPoor/fab-access-simulator/blob/v1.0.0/LICENSE">MIT License</a></div></footer>
+<footer><div class="wrap"><span>Fab Access Simulator · v1.1.0</span><a href="https://github.com/dataRichinsightPoor/fab-access-simulator/blob/main/LICENSE">MIT License</a></div></footer>
 <script type="module" src="./app.mjs"></script>
+<script type="module" src="./geometry-view.mjs"></script>
 </body>
 </html>

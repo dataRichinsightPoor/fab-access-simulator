@@ -15,7 +15,7 @@ Requires Python 3.10 or newer. From this repository’s directory:
 ```sh
 python fab_access.py --scenario example.json --out results --sweep
 python -m unittest discover -s tests -v
-node --test tests/model.test.mjs
+node --test tests/*.test.mjs
 ```
 
 Open `results/comparison.svg` for the two-panel plot. `timecourses.csv` contains the plotted values, `summary.csv` gives the occupancy metrics, `inputs.json` records the exact inputs, and `sweep.csv` varies the variant’s association rate and accessible fraction independently. To model a matched concentration clamp, give both formats the same constant custom profile or add `"constant_concentration_nM": 3` to the scenario JSON. The longer-exposure comparison then disappears by design. To run the browser locally, `python -m http.server 8000 --directory docs` serves the app on `http://localhost:8000`.
@@ -56,9 +56,19 @@ This effective one-state model does not explicitly resolve two Fab arms, recepto
 
 ## Structural accuracy and limits
 
-The model has no molecular coordinates, docking scores, explicit Fc or Fab linkers, receptor height, glycocalyx, or computed steric footprint. Treat `f` as an effective accessible fraction over the experimental window, not a structural count of exposed sites. A lower apparent association rate and a lower `f` can both suppress the early signal; for an initially empty surface their contribution to initial slope is a product. A single trace generally cannot separate them. Matched concentration series, an independently assessed surface target level, and controls for target height and ligand presentation are needed to test those interpretations.
+### Inspect the coordinate-based geometry
 
-[PDB 5YOY](https://www.rcsb.org/structure/5YOY) resolves the golimumab Fv with soluble TNF. It provides an epitope footprint but no coordinates for the intact inverted antibody, its C-terminal Fab connections, or a cell membrane. The tool therefore makes no claim about an allowable Fab approach angle or any particular structural penalty for golimumab.
+The geometry panel projects one deposited TNF trimer (chains A/B/C) and the Fv contacting chain A (light F, heavy I) from [PDB 5YOY](https://www.rcsb.org/structure/5YOY). Gold markers use the epitope residues reported by [Ono et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC5980524/) in mature TNF numbering. The original structure stays rigid as it tilts relative to the hypothetical membrane. Change the origin height, tilt, and size and placement of an optional spherical domain envelope. The reference frame, pose and plane-overlap calculation are in [`geometry.mjs`](docs/geometry.mjs) and [`scripts/build-5yoy.mjs`](scripts/build-5yoy.mjs).
+
+For each deposited heavy atom with coordinates `(x,y,z)` in the display frame, the signed distance to the hypothetical plane at `y=0` is `height + x*sin(tilt) + y*cos(tilt) − 0.17 nm`; the minimum determines the padded clearance of each component. For the sphere, clearance is its center height minus its radius. The minimum origin height is the lift needed from zero to give all displayed components nonnegative clearance. The sphere only tests the plane, not collisions with the TNF or Fab. It is not a molecular model of Fc.
+
+The bundled subset is derived from public archival coordinates, separately credited to the PDB depositors. To reproduce it, download the [5YOY PDB file](https://files.rcsb.org/download/5YOY.pdb) and run `node scripts/build-5yoy.mjs 5YOY.pdb > docs/5yoy-data.mjs`. The generated module records the input’s SHA-256.
+
+### Do not fit occupancy to the geometry
+
+The kinetic model has no molecular coordinates, docking scores, explicit Fc or Fab linkers, glycocalyx, or computed steric footprint. The structural panel does not set `f` or any rate. Treat `f` as an effective accessible fraction over the experimental window, not a structural count of exposed sites. A lower apparent association rate and a lower `f` can both suppress the early signal; for an initially empty surface their contribution to initial slope is a product. A single trace generally cannot separate them. Matched concentration series, an independently assessed surface target level, and controls for target height and ligand presentation are needed to test those interpretations.
+
+[PDB 5YOY](https://www.rcsb.org/structure/5YOY) resolves the golimumab Fv with soluble TNF. It provides an epitope footprint but no coordinates for the intact inverted antibody, its C-terminal Fab connections, or a cell membrane. A clear pose in the panel therefore does not mean it is populated or accessible in cells, and an overlap at an assumed tilt does not establish a structural penalty for golimumab.
 
 ## License
 
