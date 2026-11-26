@@ -1,5 +1,6 @@
 """Toy model for separating tissue exposure, Fab access, and occupancy."""
 import argparse
+from bisect import bisect_right
 import csv
 import json
 import math
@@ -21,6 +22,40 @@ class Exposure:
 
     def at(self, hours):
         return self.initial_nM * 2.0 ** (-hours / self.half_life_h)
+
+    @property
+    def knots(self):
+        return ()
+
+
+@dataclass(frozen=True)
+class Profile:
+    points: tuple
+
+    def __post_init__(self):
+        if not 2 <= len(self.points) <= 2000 or any(len(pair) != 2 for pair in self.points):
+            raise ValueError("Provide 2 to 2,000 time/concentration pairs.")
+        if any(not math.isfinite(x) or x < 0 for pair in self.points for x in pair):
+            raise ValueError("Profile times and concentrations must be finite and nonnegative.")
+        times = tuple(t for t, _ in self.points)
+        if times[0] != 0 or any(y <= x for x, y in zip(times, times[1:])):
+            raise ValueError("Profile times must start at zero and strictly increase.")
+        object.__setattr__(self, "_knots", times)
+
+    @property
+    def knots(self):
+        return self._knots
+
+    def at(self, hours):
+        i = min(len(self.points) - 2, bisect_right(self.knots, hours) - 1)
+        (a, y), (b, z) = self.points[i:i+2]
+        return y + (z - y) * ((min(b, hours) - a) / (b - a))
+
+
+def parse_exposure(p):
+    if "points" in p:
+        return Profile(tuple(tuple(row) for row in p["points"]))
+    return Exposure(**p)
 
 
 @dataclass(frozen=True)
@@ -48,7 +83,7 @@ def step(bound, concentration, binding, dt):
     return bound + (steady - bound) * -math.expm1(-total * dt)
 
 
-def simulate(exposure, binding, duration_h, dt_h, constant_nM=None):
+def simulate(exposure, binding, duration_h, dt_h, constant_nM=None, extra_knots=()):
     if not all(map(math.isfinite, (duration_h, dt_h))) or min(duration_h, dt_h) <= 0:
         raise ValueError("Duration and step must be finite and positive.")
     if constant_nM is not None and (not math.isfinite(constant_nM) or constant_nM < 0):
@@ -58,11 +93,17 @@ def simulate(exposure, binding, duration_h, dt_h, constant_nM=None):
         raise ValueError("Step size creates more than one million intervals.")
     count = max(1, math.ceil(ratio))
     dt = duration_h / count
+    if exposure.knots and exposure.knots[-1] < duration_h:
+        raise ValueError("Profile must cover the full simulated duration.")
+    grid = {i * dt for i in range(count)} | {duration_h}
+    if constant_nM is None:
+        grid.update(t for t in (*exposure.knots, *extra_knots) if 0 < t < duration_h)
     concentration = exposure.at if constant_nM is None else lambda _: constant_nM
     rows = [(0.0, concentration(0), 0.0)]
-    for i in range(1, count + 1):
-        bound = step(rows[-1][2], concentration((i - 0.5) * dt), binding, dt)
-        rows.append((i * dt, concentration(i * dt), bound))
+    for time in sorted(grid)[1:]:
+        prior, _, bound = rows[-1]
+        bound = step(bound, concentration((prior + time) / 2), binding, time - prior)
+        rows.append((time, concentration(time), bound))
     return rows
 
 
@@ -89,11 +130,14 @@ def summarize(rows, threshold):
 
 
 def compare(cfg):
-    reference_exp = Exposure(**cfg["reference_exposure"])
-    variant_exp = Exposure(**cfg["variant_exposure"])
+    reference_exp = parse_exposure(cfg["reference_exposure"])
+    variant_exp = parse_exposure(cfg["variant_exposure"])
     reference_binding = Binding(**cfg["reference_binding"])
     variant_binding = Binding(**cfg["variant_binding"])
-    arguments = cfg["duration_h"], cfg["dt_h"], cfg.get("constant_concentration_nM")
+    arguments = (
+        cfg["duration_h"], cfg["dt_h"], cfg.get("constant_concentration_nM"),
+        (*reference_exp.knots, *variant_exp.knots),
+    )
     return {
         "reference": simulate(reference_exp, reference_binding, *arguments),
         "variant_same_exposure": simulate(reference_exp, variant_binding, *arguments),
@@ -104,7 +148,8 @@ def compare(cfg):
 
 def sweep(cfg):
     """Hold variant exposure fixed and vary access and association independently."""
-    exp = Exposure(**cfg["variant_exposure"])
+    exp = parse_exposure(cfg["variant_exposure"])
+    ref = parse_exposure(cfg["reference_exposure"])
     binding = Binding(**cfg["variant_binding"])
     metrics = compare(cfg)
     reference = summarize(metrics["reference"], cfg["occupancy_threshold"])
@@ -114,7 +159,8 @@ def sweep(cfg):
                 binding, accessible_fraction=cap,
                 kon_per_nM_h=binding.kon_per_nM_h * multiplier,
             )
-            rows = simulate(exp, candidate, cfg["duration_h"], cfg["dt_h"], cfg.get("constant_concentration_nM"))
+            rows = simulate(exp, candidate, cfg["duration_h"], cfg["dt_h"],
+                            cfg.get("constant_concentration_nM"), ref.knots)
             summary = summarize(rows, cfg["occupancy_threshold"])
             yield {
                 "accessible_fraction": cap,
@@ -131,7 +177,7 @@ def svg_chart(series, threshold, scenario):
     dashes = ("", "8 4", "3 5", "")
     names = ("Reference", "Variant, same exposure", "Exposure alone", "Variant, own exposure")
     duration = next(iter(series.values()))[-1][0]
-    concentration_max = max(1e-9, *(r[0][1] for r in series.values()))
+    concentration_max = max(1e-9, max(c for rows in series.values() for _, c, _ in rows))
     out = ['<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="590" viewBox="0 0 1000 590" role="img" aria-labelledby="title desc">',
            '<title id="title">Fab access and exposure simulation</title>',
            '<desc id="desc">Two charts compare free tissue exposure and target occupancy in four hypothetical scenarios.</desc>',
@@ -202,9 +248,9 @@ def main():
                 writer.writerows(data)
         (args.out / "inputs.json").write_text(json.dumps(cfg, indent=2) + "\n")
         (args.out / "comparison.svg").write_text(svg_chart(series, threshold, cfg.get("label", "Custom scenario")))
-        print(f"{'Condition':27}  {'Mean occupancy':>14}  {'Hours above threshold':>22}")
+        print(f"{'Condition':27}  {'Mean occupancy':>14}  {'Hours at/above threshold':>24}")
         for row in summaries:
-            print(f"{row['condition']:27}  {row['mean_occupied_fraction']:14.1%}  {row['hours_at_or_above_threshold']:22.2f}")
+            print(f"{row['condition']:27}  {row['mean_occupied_fraction']:14.1%}  {row['hours_at_or_above_threshold']:24.2f}")
         print(f"\nWrote CSV, input snapshot, and SVG files to {args.out.resolve()}")
     except (OSError, ValueError, TypeError, KeyError) as exc:
         p.error(str(exc))

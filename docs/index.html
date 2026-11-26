@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An open, inspectable simulator of antibody tissue exposure, epitope accessibility, and target occupancy.">
+  <title>Fab Access Simulator</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header>
+  <div class="mast wrap"><span>DATA-RICH, INSIGHT-POOR?</span><a href="https://github.com/dataRichinsightPoor/fab-access-simulator">Source on GitHub ↗</a></div>
+  <div class="wrap intro">
+    <p class="eyebrow">Mechanistic modeling notebook <span>01</span></p>
+    <h1>Fab Access Simulator</h1>
+    <p>When can longer tissue exposure compensate for slower capture or fewer reachable epitopes? Change the inputs separately, then see where the trade-off lands.</p>
+    <span class="qualifier">Illustrative model · Not fitted to golimumab</span>
+  </div>
+</header>
+<main class="wrap">
+  <section class="presetband" aria-label="Illustrative scenarios">
+    <span class="eyebrow">Start with a question</span>
+    <div class="presetlist">
+      <button data-preset="tradeoff" type="button">Exposure versus access</button>
+      <button data-preset="slow" type="button">Same affinity, slower rates</button>
+      <button data-preset="ceiling" type="button">Hard access ceiling</button>
+      <button data-preset="turnover" type="button">Occupied-site loss</button>
+    </div>
+  </section>
+  <div class="layout">
+    <form id="parameters" novalidate>
+      <div class="sectiontop"><div><span class="eyebrow">01 / Set assumptions</span><h2>Experiment inputs</h2></div></div>
+      <label>Scenario name<input id="scenario-name" maxlength="90" type="text"></label>
+      <div class="fields trio">
+        <label>Duration (h)<input id="duration" type="number" min="0.001" step="any" required></label>
+        <label>Max step (h)<input id="step" type="number" min="0.000001" step="any" required></label>
+        <label>Threshold (%)<input id="threshold" type="number" min="0" max="100" step="any" required></label>
+      </div>
+      <div id="formats"></div>
+      <details class="transfer">
+        <summary>Import or export a scenario</summary>
+        <div class="exports"><button id="save-json" type="button">Save JSON</button><label class="filelabel">Load JSON<input id="load-json" type="file" accept=".json,application/json"></label></div>
+        <p>Files are read locally in your browser. Nothing is uploaded.</p>
+      </details>
+      <p id="error" class="error" role="alert" hidden></p>
+      <button class="primary" type="submit">Run comparison</button>
+      <p id="dirty" class="hint" aria-live="polite"></p>
+    </form>
+    <section id="results" aria-labelledby="result-title">
+      <div class="sectiontop"><div><span class="eyebrow">02 / Compare</span><h2 id="result-title">Occupancy over time</h2></div><button type="button" id="save-csv">Export CSV</button></div>
+      <p id="active-scenario" class="active" aria-live="polite"></p>
+      <div id="legend" class="legend"></div>
+      <figure><h3>Occupied surface target <span>% of total</span></h3><div id="occupancy"></div></figure>
+      <figure><h3>Free antibody in tissue <span>nM</span></h3><div id="exposure"></div></figure>
+      <div class="tablebox"><table>
+        <caption>Summary at the chosen occupancy threshold</caption>
+        <thead><tr><th scope="col">Condition</th><th scope="col">Mean occupancy</th><th scope="col" id="threshold-head">Time ≥ 50%</th><th scope="col">End occupancy</th></tr></thead>
+        <tbody id="metrics"></tbody>
+      </table></div>
+      <p id="interpretation" class="interpretation"></p>
+    </section>
+  </div>
+  <section class="sensitivity" aria-labelledby="sweep-title">
+    <div class="sectiontop"><div><span class="eyebrow">03 / Test the boundary</span><h2 id="sweep-title">Access × association</h2></div><button type="button" id="run-sweep">Run sensitivity sweep</button></div>
+    <p>Hold the variant’s current exposure and dissociation rate fixed. Read each cell as the change in hours above the threshold versus the reference.</p>
+    <div id="sweep-result" class="tablebox" aria-live="polite"></div>
+    <button type="button" id="save-sweep" hidden>Export sweep CSV</button>
+  </section>
+  <section class="methods" aria-labelledby="methods-title">
+    <span class="eyebrow">04 / Inspect the model</span>
+    <h2 id="methods-title">What the simulator represents</h2>
+    <div class="methodgrid">
+      <div><h3>Math and units</h3><pre>dB/dt = k_on C(t)(f − B) − (k_off + k_loss)B</pre><p>B is the fraction of all surface sites occupied, f is the reachable fraction, and C(t) is free antibody in the tissue. Time is in hours; concentration is in nM. The solver uses the exact constant-input update with concentration evaluated at each step’s midpoint. Uploaded profiles are interpolated linearly and their knot times are included in the integration grid.</p></div>
+      <div><h3>Structural limits</h3><p>Fab placement, epitope height, and steric constraints are not calculated. Access and rates are hypotheses supplied by the user. The golimumab structure <a href="https://www.rcsb.org/structure/5YOY">5YOY</a> resolves an Fv with soluble TNF, not an intact inverted antibody at a membrane. It cannot calibrate this model.</p></div>
+      <div><h3>What the data say</h3><p>The <a href="https://www.biorxiv.org/content/10.64898/2026.11.02.763654v1.full">Weise et al. preprint</a> measured clearance in a mouse model and soluble TNF neutralization, not the paired tissue exposures or surface binding rates needed here. The outputs are occupancy scenarios, not efficacy or dosing predictions.</p></div>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap"><span>Fab Access Simulator · v1.0.0</span><a href="https://github.com/dataRichinsightPoor/fab-access-simulator/blob/v1.0.0/LICENSE">MIT License</a></div></footer>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>

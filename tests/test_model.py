@@ -4,7 +4,7 @@ from pathlib import Path
 import unittest
 from xml.etree import ElementTree
 
-from fab_access import Binding, Exposure, compare, simulate, step, summarize, svg_chart, sweep
+from fab_access import Binding, Exposure, Profile, compare, simulate, step, summarize, svg_chart, sweep
 
 
 class ModelTests(unittest.TestCase):
@@ -59,6 +59,19 @@ class ModelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             Exposure(1, 0)
         ElementTree.fromstring(svg_chart(compare(self.config), 0.5, "A & B"))
+
+    def test_custom_profiles_include_both_sets_of_knots_on_a_shared_grid(self):
+        self.config["reference_exposure"] = {"points": [[0, 3], [1.007, 3], [72, 0]]}
+        self.config["variant_exposure"] = {"points": [[0, 3], [1.013, 1], [72, 4]]}
+        output = compare(self.config)
+        grid = [t for t, _, _ in output["reference"]]
+        self.assertIn(1.007, grid)
+        self.assertIn(1.013, grid)
+        for rows in output.values():
+            self.assertEqual([t for t, _, _ in rows], grid)
+        self.assertAlmostEqual(Profile(((0, 3), (2, 1))).at(1), 2)
+        with self.assertRaises(ValueError):
+            simulate(Profile(((0, 1), (1, 2))), Binding(1, 1), 2, 0.1)
 
 
 if __name__ == "__main__":
