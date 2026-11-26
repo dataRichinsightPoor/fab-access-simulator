@@ -1,0 +1,10 @@
+{
+  "label": "Slower capture with longer tissue exposure",
+  "duration_h": 72,
+  "dt_h": 0.05,
+  "occupancy_threshold": 0.5,
+  "reference_exposure": {"initial_nM": 15, "half_life_h": 10},
+  "variant_exposure": {"initial_nM": 15, "half_life_h": 22},
+  "reference_binding": {"kon_per_nM_h": 0.08, "koff_per_h": 0.18, "accessible_fraction": 1.0},
+  "variant_binding": {"kon_per_nM_h": 0.04, "koff_per_h": 0.18, "accessible_fraction": 0.85}
+}
